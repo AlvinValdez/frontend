@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { Button, Divider, Icon, Label } from 'semantic-ui-react';
+import InfiniteScroll from 'react-infinite-scroller';
 
 import { SectionContent } from 'shared_components/layout/Page';
 import { getFormattedTripDates, generateTripSlug } from 'libs/Utils';
@@ -112,24 +113,34 @@ class Trip extends Component {
   }
 }
 
+const loader = (
+  <LoaderWrapper>
+    <Loader active inline="centered" size="big">
+      Loading
+    </Loader>
+  </LoaderWrapper>
+);
+
 const TripSectionComponent = props => {
   if (props.isLoadingTrips) {
-    return (
-      <LoaderWrapper>
-        <Loader active inline="centered" size="big">
-          Loading
-        </Loader>
-      </LoaderWrapper>
-    );
+    return loader;
   }
-  if (!props.trips.length) {
+  if (!props.allTrips.length) {
     return <p>You don't have any {props.tripsType} trips.</p>;
   }
+  console.log(props.getMoreTrips);
   return (
     <section>
-      {props.trips.map(trip => (
-        <Trip key={trip.objectId} trip={trip} />
-      ))}
+      <InfiniteScroll
+        pageStart={0}
+        loadMore={props.getMoreTrips}
+        hasMore={props.tripsYetNotRendered}
+        loader={loader}
+      >
+        {props.trips.map(trip => (
+          <Trip key={trip._id} trip={trip} />
+        ))}
+      </InfiniteScroll>
     </section>
   );
 };

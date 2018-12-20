@@ -2,13 +2,14 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Grid } from 'semantic-ui-react';
 import { withRouter } from 'react-router-dom';
-import history from 'main/history';
 
 import { Page, PageContent } from 'shared_components/layout/Page';
 import TopBar from 'shared_components/TopBar';
 import { SectionWrap } from 'shared_components/layout/Page';
 import UserBasicInfo from 'styled_scenes/Account/components/UserBasicInfo';
 import TripSectionComponent from 'styled_scenes/Account/Trips/shared/TripSectionComponent';
+
+const pageSize = 6;
 
 class AccountTripsScene extends Component {
   static propTypes = {
@@ -20,22 +21,36 @@ class AccountTripsScene extends Component {
     allTrips: [],
   };
 
-  getTrips = pathname => {
+  state = {
+    trips: [],
+    lastShown: 0,
+    tripsYetNotRendered: true,
+  };
+
+  getMoreTrips = () => {
     const { allTrips } = this.props;
-    let status = 'all';
-    if (pathname === '/account/trips/planned' || pathname === '/account/trips/completed') {
-      history.replace('/account/trips/all');
-    }
-    return allTrips.filter(trip => {
-      if (status === 'all') return true;
-      const tripStatus = trip && trip.metaData && trip.metaData.status;
-      return tripStatus === status;
+    this.setState(prevState => {
+      if (prevState.lastShown === 0) {
+        return {
+          trips: allTrips.slice(0, pageSize),
+          lastShown: allTrips.length >= pageSize ? pageSize : allTrips.length,
+          tripsYetNotRendered: allTrips.length >= pageSize,
+        };
+      }
+
+      return {
+        trips: [
+          ...prevState.trips,
+          ...allTrips.slice(prevState.lastShown, prevState.lastShown + pageSize),
+        ],
+        lastShown: prevState.lastShown + pageSize,
+        tripsYetNotRendered: allTrips.length >= prevState.lastShown + pageSize,
+      };
     });
   };
 
   render() {
-    const { location, isLoadingTrips } = this.props;
-    const { pathname } = location;
+    const { isLoadingTrips } = this.props;
     return (
       <div>
         <Page topPush>
@@ -51,7 +66,10 @@ class AccountTripsScene extends Component {
                 <h1>My Trips</h1>
                 <TripSectionComponent
                   isLoadingTrips={isLoadingTrips}
-                  trips={this.getTrips(pathname)}
+                  trips={this.state.trips}
+                  allTrips={this.props.allTrips}
+                  getMoreTrips={this.getMoreTrips}
+                  tripsYetNotRendered={this.state.tripsYetNotRendered}
                 />
               </Grid.Column>
             </Grid>
