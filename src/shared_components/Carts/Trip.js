@@ -28,7 +28,7 @@ import ImgurAvatar from './../../assets/no-avatar.png';
 
 const Wrap = styled.div`
   display: inline-block;
-  width: calc(100% - 30px);
+  width: 255px;
   margin: 0 15px;
 `;
 
